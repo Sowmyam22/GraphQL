@@ -29,6 +29,8 @@ const { buildSchema } = require('graphql');
 // to check in the GraphiQL
 
 /** 
+ * http://localhost:8080/graphql
+ * 
  * mutation {
  * createUser(userInput: {email: "test8@gmail.com", name: "test8", password: "test"}) {
  * _id
