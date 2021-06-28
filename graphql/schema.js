@@ -26,6 +26,17 @@ const { buildSchema } = require('graphql');
 
 // posts: [Post!]! => for adding array pf posts data in the user
 
+// to check in the GraphiQL
+
+/** 
+ * mutation {
+ * createUser(userInput: {email: "test8@gmail.com", name: "test8", password: "test"}) {
+ * _id
+ * email
+ * }
+ * }
+ **/ 
+
 module.exports = buildSchema(`
   type Post {
     _id: ID!
