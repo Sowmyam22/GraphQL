@@ -149,15 +149,23 @@ module.exports = {
     }
   },
 
-  posts: async function (args, req) {
+  posts: async function ({ page }, req) {
     if (!req.isAuth) {
       const error = new Error('User not Authenticated!');
       error.code = 401;
       throw error;
     }
 
+    // pagination
+    if (!page) {
+      page = 1;
+    }
+    const perPage = 2;
     const totalPosts = await Post.findAndCountAll();
-    const posts = await Post.findAll();
+    const posts = await Post.findAll({
+      offset: (page - 1) * perPage,
+      limit: perPage
+    });
 
     return {
       posts: posts.map(post => {
