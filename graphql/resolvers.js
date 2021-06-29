@@ -128,7 +128,7 @@ module.exports = {
     const post = new Post({
       title: postInput.title,
       content: postInput.content,
-      imageUrl: postInput.imageUrl.replace("\\", "/"),
+      imageUrl: postInput.imageUrl,
       creator: user
     });
 
@@ -142,7 +142,7 @@ module.exports = {
       _id: createdPost._id,
       title: createdPost.title,
       content: createdPost.content,
-      imageUrl: createdPost.imageUrl.replace("\\", "/"),
+      imageUrl: createdPost.imageUrl,
       creator: createdPost.creator,
       createdAt: createdPost.createdAt.toISOString(),
       updatedAt: createdPost.updatedAt.toISOString()
@@ -203,6 +203,62 @@ module.exports = {
       imageUrl: post.imageUrl,
       creator: post.creator,
       createdAt: post.createdAt.toISOString()
+    }
+  },
+
+  updatePost: async function ({ id, postInput }, req) {
+    if (!req.isAuth) {
+      const error = new Error('User not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+
+    const post = await Post.findByPk(id);
+    if (!post) {
+      const error = new Error('No Post Found!')
+      error.code = 404;
+      throw error;
+    }
+    if (post.creator._id !== req.userId) {
+      const error = new Error('Not Authorized');
+      error.code = 403;
+      throw error;
+    }
+
+    const errors = [];
+    if (validator.isEmpty(postInput.title) ||
+      !validator.isLength(postInput.title, { min: 5 })
+    ) {
+      errors.push({ message: 'Title is Invalid!' });
+    }
+
+    if (validator.isEmpty(postInput.content) ||
+      !validator.isLength(postInput.content, { min: 5 })
+    ) {
+      errors.push({ message: 'Content is Invalid!' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Invalid Input!');
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
+
+    post.title = postInput.title;
+    post.content = postInput.content;
+    if (post.imageUrl !== 'undefined') {
+      post.imageUrl = postInput.imageUrl;
+    }
+
+    const updatedPost = await post.save();
+    return {
+      _id: updatedPost._id,
+      title: updatedPost.title,
+      content: updatedPost.content,
+      imageUrl: updatedPost.imageUrl,
+      creator: updatedPost.creator,
+      createdAt: updatedPost.createdAt.toISOString(),
     }
   }
 }
