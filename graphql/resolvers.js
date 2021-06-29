@@ -3,6 +3,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const Post = require('../models/post');
 
 // module.exports = {
 //   hello() {
@@ -85,5 +86,66 @@ module.exports = {
     }, 'secret', { expiresIn: '1h' });
 
     return { token: token, userId: user._id };
+  },
+
+  createPost: async function ({ postInput }, req) {
+    if (!req.isAuth) {
+      const error = new Error('User not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+
+    const errors = [];
+    if (validator.isEmpty(postInput.title) ||
+      !validator.isLength(postInput.title, { min: 5 })
+    ) {
+      errors.push({ message: 'Title is Invalid!' });
+    }
+
+    if (validator.isEmpty(postInput.content) ||
+      !validator.isLength(postInput.content, { min: 5 })
+    ) {
+      errors.push({ message: 'Content is Invalid!' });
+    }
+
+    if (errors.length > 0) {
+      const error = new Error('Invalid Input!');
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
+
+    // get the user from db
+
+    const user = await User.findByPk(req.userId)
+
+    if (!user) {
+      const error = new Error('Invalid User!');
+      error.code = 401;
+      throw error;
+    }
+
+    const post = new Post({
+      title: postInput.title,
+      content: postInput.content,
+      imageUrl: postInput.imageUrl,
+      creator: user
+    });
+
+    const createdPost = await post.save();
+    // add post to users posts
+    /** 
+     *  user.posts.push(createdPost);
+     *  await user.save();
+     **/
+    return {
+      _id: createdPost._id,
+      title: createdPost.title,
+      content: createdPost.content,
+      imageUrl: createdPost.imageUrl,
+      creator: createdPost.creator,
+      createdAt: createdPost.createdAt.toISOString(),
+      updatedAt: createdPost.updatedAt.toISOString()
+    }
   }
 }
