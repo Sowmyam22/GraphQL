@@ -128,7 +128,7 @@ module.exports = {
     const post = new Post({
       title: postInput.title,
       content: postInput.content,
-      imageUrl: postInput.imageUrl,
+      imageUrl: postInput.imageUrl.replace("\\", "/"),
       creator: user
     });
 
@@ -142,7 +142,7 @@ module.exports = {
       _id: createdPost._id,
       title: createdPost.title,
       content: createdPost.content,
-      imageUrl: createdPost.imageUrl,
+      imageUrl: createdPost.imageUrl.replace("\\", "/"),
       creator: createdPost.creator,
       createdAt: createdPost.createdAt.toISOString(),
       updatedAt: createdPost.updatedAt.toISOString()
@@ -174,9 +174,35 @@ module.exports = {
           title: post.title,
           content: post.content,
           creator: post.creator,
+          imageUrl: post.imageUrl,
           createdAt: post.createdAt.toISOString(),
         }
       }), totalPosts: totalPosts.count
+    }
+  },
+
+  post: async function ({ id }, req) {
+    if (!req.isAuth) {
+      const error = new Error('User not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+
+    const post = await Post.findByPk(id);
+
+    if (!post) {
+      const error = new Error('No Post Found!')
+      error.code = 404;
+      throw error;
+    }
+
+    return {
+      _id: post._id,
+      title: post.title,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      creator: post.creator,
+      createdAt: post.createdAt.toISOString()
     }
   }
 }
