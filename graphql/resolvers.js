@@ -147,5 +147,28 @@ module.exports = {
       createdAt: createdPost.createdAt.toISOString(),
       updatedAt: createdPost.updatedAt.toISOString()
     }
+  },
+
+  posts: async function (args, req) {
+    if (!req.isAuth) {
+      const error = new Error('User not Authenticated!');
+      error.code = 401;
+      throw error;
+    }
+
+    const totalPosts = await Post.findAndCountAll();
+    const posts = await Post.findAll();
+
+    return {
+      posts: posts.map(post => {
+        return {
+          _id: post._id,
+          title: post.title,
+          content: post.content,
+          creator: post.creator,
+          createdAt: post.createdAt.toISOString(),
+        }
+      }), totalPosts: totalPosts.count
+    }
   }
 }
